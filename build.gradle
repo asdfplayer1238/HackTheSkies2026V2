@@ -1,0 +1,47 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group = 'com.game'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+// Define LWJGL version
+project.ext.lwjglVersion = "3.3.3"
+
+def osName = System.getProperty("os.name").toLowerCase()
+def osArch = System.getProperty("os.arch").toLowerCase()
+if (osName.contains("win")) {
+    project.ext.lwjglNatives = "natives-windows"
+} else if (osName.contains("mac")) {
+    project.ext.lwjglNatives = osArch.contains("aarch64") || osArch.contains("arm64")
+        ? "natives-macos-arm64"
+        : "natives-macos"
+} else if (osName.contains("linux")) {
+    project.ext.lwjglNatives = "natives-linux"
+} else {
+    throw new GradleException("Unsupported operating system: ${osName}")
+}
+
+dependencies {
+    implementation platform("org.lwjgl:lwjgl-bom:$lwjglVersion")
+
+    implementation "org.lwjgl:lwjgl"
+    implementation "org.lwjgl:lwjgl-glfw"
+    implementation "org.lwjgl:lwjgl-opengl"
+    implementation "org.lwjgl:lwjgl-stb"
+
+    runtimeOnly "org.lwjgl:lwjgl::$lwjglNatives"
+    runtimeOnly "org.lwjgl:lwjgl-glfw::$lwjglNatives"
+    runtimeOnly "org.lwjgl:lwjgl-opengl::$lwjglNatives"
+    runtimeOnly "org.lwjgl:lwjgl-stb::$lwjglNatives"
+}
+
+application {
+    mainClass = 'com.game.Main'
+    applicationDefaultJvmArgs = osName.contains("mac") ? ['-XstartOnFirstThread'] : []
+}
